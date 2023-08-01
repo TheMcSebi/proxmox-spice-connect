@@ -7,7 +7,11 @@ from time import sleep
 from proxmoxer import ProxmoxAPI
 from proxmoxer.core import ResourceException
 
-from cfg import user, passw
+try:
+    from cfg import user, passw
+except:
+    user = None
+    passw = None
 
 def open_file(filepath):
     plat = platform.system()
@@ -20,11 +24,21 @@ def open_file(filepath):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("-s", "--server", help="Server to connect to", type=str, default="192.168.178.8", required=False)
-    parser.add_argument("-n", "--name", help="Name of the VM", type=str, default="win11-1", required=False)
+    parser.add_argument("-s", "--server", help="Server to connect to", type=str, required=True)
+    parser.add_argument("-u", "--user", help="Username to initiate the connection with", type=str, required=True)
+    parser.add_argument("-p", "--password", help="The users password", type=str, required=True)
+    parser.add_argument("-n", "--name", help="Name of the VM", type=str, required=True)
     parser.add_argument("-f", "--fullscreen", help="Start in fullscreen mode", action=BooleanOptionalAction, default=False)
     args = parser.parse_args()
 
+    if args.user:
+        user = args.user
+    if args.password:
+        passw = args.password
+
+    if user is None or passw is None:
+        print("Error: Please provide username and password either via cfg.py or via command line")
+        exit(1)
 
     pve = ProxmoxAPI(args.server, user=user, password=passw, verify_ssl=False)
     vms = {}
